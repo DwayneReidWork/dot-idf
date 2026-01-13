@@ -658,3 +658,78 @@ status = getaddrinfo("127.0.0.1", "5555", &hints, &response);
 - think of the `hints` struct as our configuration. I want addrinfo configurations that match this config.
 - `hints.ai_flags = AI_PASSIVE` can be used when creating addrinfo for server sockets. it tells addrinfo to "fill in the systems IP address", and the `node` parameter would be NULL.
 - when creating a connection, `hints.ai_flags` would be unset, and the remote node would be provided by the caller
+<!-- end_slide -->
+
+Network Programming -- `getaddrinfo`
+---
+# using `struct addrinfo *response` to make a TCP server socket
+- a successfull call to `getaddrinfo` will yield a linked list of addrinfo structs
+- linked lists are a data type that point to the next item, or `NULL` if the current item is the last
+- more about linked lists in the data structure slides
+```c +line_numbers
+int socketfd = -1;
+int status = -1;
+
+// this will loop through each node in the linked list
+for (struct *addrinfo index = response; NULL != index; index = index->ai_next) {
+    socketfd = socket(index->ai_family, index->ai_socktype, index->ai_protocol);
+    if (-1 == socketfd) {
+        continue; // try the next link in the list
+    }
+
+    status = bind(socketfd, index->ai_addr, index->ai_addrlen);
+    if (-1 == status) {
+        goto CLOSE_FD;
+    }
+
+    status = listen(socketfd, 20);
+    if (-1 == status) {
+        goto CLOSE_FD;
+    }
+
+    break;
+
+CLOSE_FD:
+    close(socketfd);
+}
+
+freeaddrinfo(response);
+```
+- we break at the end of the loop because we have a successfully connected, bound, and listening socket that is ready to accept
+- use the `freeaddrinfo` after the loop to free the dynamically linked list created by `getaddrinfo`
+<!-- end_slide -->
+
+Network Programming -- `getaddrinfo`
+---
+# using `struct addrinfo *response` to make a TCP client socket
+```c +line_numbers
+int socketfd = -1;
+int status = -1;
+
+// this will loop through each node in the linked list
+for (struct *addrinfo index = response; NULL != index; index = index->ai_next) {
+    socketfd = socket(index->ai_family, index->ai_socktype, index->ai_protocol);
+    if (-1 == socketfd) {
+        continue; // try the next link in the list
+    }
+
+    status = connect(socketfd, index->ai_addr, index->ai_addrlen);
+    if (-1 == status) {
+        goto CLOSE_FD;
+    }
+
+    break;
+
+CLOSE_FD:
+    close(socketfd);
+}
+
+freeaddrinfo(response);
+```
+- the primary difference between the Server and Client examples are the calls inside the for loop
+- use the `freeaddrinfo` after the loop to free the dynamically linked list created by `getaddrinfo`
+<!-- end_slide -->
+
+Network Programming -- `getaddrinfo`
+---
+# demo - rewriting our client/server to use `getaddrinfo`
