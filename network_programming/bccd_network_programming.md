@@ -671,7 +671,7 @@ int socketfd = -1;
 int status = -1;
 
 // this will loop through each node in the linked list
-for (struct *addrinfo index = response; NULL != index; index = index->ai_next) {
+for (struct addrinfo *index = response; NULL != index; index = index->ai_next) {
     socketfd = socket(index->ai_family, index->ai_socktype, index->ai_protocol);
     if (-1 == socketfd) {
         continue; // try the next link in the list
