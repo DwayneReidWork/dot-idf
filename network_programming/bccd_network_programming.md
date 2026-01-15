@@ -733,3 +733,378 @@ freeaddrinfo(response);
 Network Programming -- `getaddrinfo`
 ---
 # demo - rewriting our client/server to use `getaddrinfo`
+<!-- end_slide -->
+
+Network Programming -- C Threading Intro
+---
+
+# Why Threading?
+- our current tcp server handles requests `concurrently`, or operations happen one at a time
+- threading is a mechanism for creating another block of executable code that runs `asyncronously` or at the same time as our main block of code
+- our `accept`, `recv`, and `send` calls are blocking. The main thread of execution will no longer run untill that call is complete
+- our `accept` call can be blocked in one thread, while a separate thread handles the `recv` and `send` calls of a specific client
+
+# posix threading with `pthread` (posix thread)
+- `man pthreads`            -- outlines posix threads holistically
+    - `man pthread_create`  -- describes the creation of threads
+    - `man pthread_join`    -- describes `joining` on pthreads to wait on a thread and optionally receive the output from a completed thread
+    - `man pthread_detach`  -- `detatch` from a thread, normally used when the thread results and resources are not needed by the main thread.
+
+## pthread resource sharing
+- pthreads share the same `heap` as the main process thread. a pointer to a data structure can be passed to a thread and the new thread can access it
+- the file descriptor (fd) table is copied at `thread creation time`. the `child thread` will have access to all the fd's the parent thread has when it was created, but not new ones opened after creation
+
+# threads in action
+- our main server might need to handle multiple clients, but our client handling code is client specific
+- our client handling code can be encapsulated into its own function
+- our main thread receives a new connection, creates a new thread with the client handling function
+- the main thread goes back to `accept`, which will block while it waits for another connection
+- the client thread will `read` and `recv`, blocking only itself.
+
+# thread dangers
+- if threads will be accessing the same data, access to that data needs to be `synchronization`
+- these synchronization techniques are beyond the scope of the networking slides but resources can be found here:
+    - `man pthread_mutex_init`
+    - `man pthread_cond_init`
+<!-- end_slide -->
+
+Network Programming -- C Threading Intro
+---
+# Creating a thread
+- our thread function must be return a `void *` and take a `void *` as its only argument. this lets us optionally return data of any type, while also accepting data of any type
+
+## handle_client example
+- this is a simple example that doesnt handle partial send/recv or perform data serialization
+```c +line_numbers
+struct thread_ctx {
+    int fd;
+    // other data a specific thread might need
+};
+
+void *handle_client(void *context) {
+    struct thread_ctx *ctx = (struct thread_ctx *)context; // cast input to expected type
+
+    char buffer[256] = {0};
+    ssize_t bytes_tx = 0;
+
+    while (1) {
+        // read message from client
+        bytes_tx = recv(ctx->fd, buffer, 256, 0);
+        // do stuff with message
+        // send response
+        bytes_tx = send(ctx->fd, buffer, 256, 0);
+    }
+
+    close(ctx->fd);
+
+    // the main thread and child threads all share the same heap,
+    // freeing it here frees this pointer in all threads.
+    // do NOT free in the main thread or a double free and segfault can happen
+    free(ctx);
+
+    return NULL; // can just return NULL if no output
+}
+```
+<!-- end_slide -->
+
+network programming -- c threading intro
+---
+## main example
+- in this example, I am ommitting the network related includes as well as the setup/teardown of a TCP server
+```c +line_numbers
+#include <pthread.h>
+
+int main(int argc, char **argv) {
+    int server_fd = 0;
+    int client_fd = 0;
+    struct thread_ctx *client_ctx = NULL;
+    pthread_t tid = 0;
+
+    // implement a server
+
+    while (1) {
+        client_fd = accept(server_fd, NULL, NULL);
+        client_ctx = (struct client_ctx *)calloc(1, sizeof(struct client_ctx));
+
+        client_ctx->fd = client_fd;
+        pthread_create(&tid, NULL, handle_client, client_ctx);
+        pthread_detach(tid);
+    }
+}
+```
+- with this implementation, all the client related logic is handled in the previously declared `handle_client` function
+- when a connection is accepted, it is immedialed passed into a new thread
+- in this toy example, we don't need any output of the thread, and detatch it from the main thread
+<!-- end_slide -->
+
+network programming -- c threading intro
+---
+# demo: refactoring our server to handle multiple connections
+<!-- end_slide -->
+
+network programming -- Python TCP Server
+---
+# TCP Server
+- implementing a server in python is less laborsome
+- the `socket` library contains the majority of the function calls required
+```python +line_numbers
+import socket
+
+HOST = "127.0.0.1"
+PORT = 5555
+
+sockaddr = (HOST, PORT)
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+server.bind(sockaddr)
+server.listen(20)
+client = server.accept()
+```
+# explanation
+- 1   imports the socket library, which is part of the standard python library
+- 3-4 create some "global" variables
+- 6   hand craft our "artisinal" sockaddr, in python the bind call is expecting a tuple of a string and int for the ip and port number
+- 7   create a socket, notice the parameters mirror the c socket call, with the socket related constants being accessed through the socket module. the result of this call is a `socket.socket` object, which is an abstraction around the socket file descriptor
+- 8   `server.bind` binds the fd abstracted by the `socket.socket` to the provided "sockaddr" tuple
+- 9   `server.listen` calls listen on the `socket.socket` object, with the provied backlog
+- 10  `server.accept()` will block, accepting a connection. the return of accept is a tuple with index 0 being the client socket and index 1 being the client sockaddr tuple
+- 10  line 10 could be rewritten as `client, addr = server.accept()` to unpack the tuple in one call
+<!-- end_slide -->
+
+network programming -- Python TCP Server
+---
+# `socket.getaddrinfo`
+- the socket module provides a wrapper for `getaddrinfo`
+
+```python +line_numbers
+import socket
+
+HOST = "127.0.0.1"
+PORT = 5555
+server = None # for our socket, we need a scope variable to assign outside our loop
+
+response = socket.getaddrinfo(HOST, PORT, family=AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE)
+
+for item in response:
+    af, socktype, proto, canonname, sa = item;
+
+    try:
+        server = socket.socket(af, socktype, proto);
+    except OSError as msg:
+        server = None
+        continue
+    try:
+        server.bind(sa)
+        server.listen(20)
+    except OSError as msg:
+        server.close()
+        server = None
+        continue
+    break # if we make it this far, we have a good socket ready to accept
+
+if server is None:
+    print("could not open a socket")
+
+conn, addr = server.accept()
+```
+<!-- end_slide -->
+
+network programming -- Python TCP Server
+---
+# `socket.create_server`
+- similar to the C function demo'd in class. this is a convenience function used to create a `SOCK_STREAM` style socket (TCP) ready to `accept()`
+
+```python +line_numbers
+import socket
+
+HOST = "127.0.0.1"
+PORT = 5555
+
+server = socket.create_server((HOST, PORT))
+conn, addr = server.accept()
+```
+
+# Options!
+- python is going to give you access to the system calls (wrapped in a python function) with `socket.socket()`, `socket.bind()`, `socket.listen()`
+- python even exposes a python wrapped version of `getaddrinfo()` with `socket.getaddrinfo()`
+- python provides some convenience function that you would have to implement yourself in C
+- use the layer of abstraction that works for your use case! there is nothing wrong with calling `socket.create_server()` if you arent using the expanded functionality of hand crafting your connection
+- these function might have additional parameters that can expand the functionality. become familiar with the python documentation to increase your foundational understanding of python networking
+<!-- end_slide -->
+
+network programming -- Python TCP Client
+---
+# With Sockets
+```python +line_numbers
+import socket
+
+HOST = "127.0.0.1"
+PORT = 5555
+
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
+client.connect((HOST, PORT))
+```
+
+# With `socket.getaddrinfo`
+```python +line_numbers
+import socket
+
+HOST = "127.0.0.1"
+PORT = 5555
+client = None # for our socket, we need a scope variable to assign outside our loop
+
+response = socket.getaddrinfo(HOST, PORT, family=AF_UNSPEC, type=socket.SOCK_STREAM)
+
+for item in response:
+    af, socktype, proto, canonname, sa = item;
+
+    try:
+        server = socket.socket(af, socktype, proto);
+    except OSError as msg:
+        client = None
+        continue
+    try:
+        s.connect(sa)
+    except OSError as msg:
+        client.close()
+        client = None
+        continue
+    break # if we make it this far, we have a good socket ready to send/recv
+
+if client is None:
+    print("could not open a socket")
+```
+<!-- end_slide -->
+
+network programming -- Python TCP Client
+---
+# with `socket.create_connection`
+- like with `socket.create_server`, this will create a SOCK_STREAM type socket
+```python +line_numbers
+import socket
+
+HOST = "127.0.0.1"
+PORT = 5555
+
+client = socket.create_connection((HOST, PORT))
+```
+<!-- end_slide -->
+
+network programming -- Python Serialization
+---
+# serialization and deserialization
+- before we send and recv data with python, we will review data serialization with the `struct` module
+- as with C, we send bytes over the network and not programming logical constructs
+- we need a way to serialize our python data in the same way we serialize our C data
+- https://docs.python.org/3/library/struct.html
+    - https://docs.python.org/3/library/struct.html#byte-order-size-and-alignment
+    - https://docs.python.org/3/library/struct.html#format-characters
+
+# `struct.pack`
+
+the `pack` function of the `struct` module will pack a sequence of arguments into a `bytes` object. the resulting `bytes` object can be passed to our `send/recv` functions
+
+## packing a single integer
+
+- the format string `"!I"` states the output will be network byte order (`!`) and the first series of bytes is an unsigned int of 4 bytes (`I`)
+- the arguments after the format string are the parameters to be serialized in the order they appear in the format string
+
+```python +line_numbers
+import struct
+
+some_int = 12345
+
+payload = struct.pack("!I", some_int)
+```
+<!-- end_slide -->
+
+network programming -- Python Serialization
+---
+## packing a `type`, `length`, `value` style packet
+```python +line_numbers
+class Message:
+    def __init__(self, type, value):
+        # we dont provide a length of value, because python knows the size
+        self.type = type
+        self.value = value
+
+    def serialize(self):
+        value_bytes = self.value.encode()
+        length = len(value_bytes)
+        format_string = f"!BI{length}s"
+        payload = struct.pack(format_string, self.type, length, value_bytes)
+        return payload
+
+message = Message(0, "this will echo to the screen!")
+message.serialize()
+```
+lets `unpack` whats happening here
+- we have a python class version of our c message struct
+- we have a constructor that takes a type and a value. our values are strings, and python knows the length of a string with the `len()` function, so we dont need it as a property
+- because this is a class, our `Message` objects can serialize themselves!
+
+The `format_string` is being dynamically created based on the values provided to the object at creation time
+- our C struct `type` property is an `uint8_t` and the format specifier for that is `B`
+- next, our C struct `length` property is an `uint32_t` and the format specifier for that is `I`
+- lastly, we need to convert our `value` string to bytes with the string `.encode()` function. we use its length to set the final specifier of `{length}s`. the length is used to tell pack how many bytes to pack into the `bytes` output
+
+Using the features of OOP, we have created a new Class for message passing that we can serialize when needed and we can call `len()` on the resulting bytes object to determine the amount of bytes in the fully packed messge
+<!-- end_slide -->
+
+network programming -- Python send
+---
+# send
+- now that we have serialized data, we can send and recieve our bytes
+- `send` and `recv` are methods on socket objects.
+- just like with C, these functions can partial send/recv and iteration can be used to solve this issue
+
+
+## using iteration
+```python +line_numbers
+# using a previously created client socket
+message = Message(0, "this will echo to the screen!")
+payload = message.serialize()
+bytes_tx = 0
+
+while bytes_tx < len(payload):
+    # will evaluate to the bytes at the index up until the end of the payload bytes object
+    delta = client.send(payload[bytes_tx:-1]
+
+    bytes_tx = bytes_tx + delta
+
+```
+
+## using builtin sendall function
+```python +line_numbers
+# using a previously created client socket
+message = Message(0, "this will echo to the screen!")
+payload = message.serialize()
+bytes_tx = 0
+client.sendall(payload)
+```
+<!-- end_slide -->
+
+network programming -- Python recv
+---
+# recv
+- the recv call of a socket object will return the bytes received from the call
+- to handle partial recvs, we can use iteration to append bytes to a bytearray
+    - bytes are immutable, so concatenating bytes could become exponentially expensive
+    - a bytearray will contain the sequence of bytes that will be used to create the resulting bytes object
+- once a complete message has been received, we can concatenate the bytearray to bytes
+
+```python +line_numbers
+MESSAGE_HEADER 40 # a uint8_t and a uint32_t
+
+bytes_tx = 0
+payload = bytearray() # we use a bytearray() because "bytes" are immutable
+
+while bytes_tx < MESSAGE_HEADER:
+    chunk = client.recv(MESSAGE_HEADER - bytes_tx)
+    if chunk is None:
+        # recv of zero normally means conneciton has closed
+        pass
+    payload.extend(chunk)
+    bytes_tx = bytes_tx + len(chunk)
+
+payload = bytes(payload)
+```

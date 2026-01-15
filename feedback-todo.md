@@ -55,6 +55,7 @@
 - finish file i/o
 
 # network programming
+- rewrite serialization to use a type, length, value
 - add UDP
 
 # All
