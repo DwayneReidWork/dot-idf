@@ -452,6 +452,11 @@ struct message {
 - when receiving data, an endpoint will always read a `sizeof(uint8_t)` to determine the type of incoming message, followed by a `sizeof(uint32_t)` to determine the final `length` to read to obtain `value`
 - when sending data, we need to put our values in a contiguous space so `send` can send the bytes in the proper order
 - `calloc` and `memcpy` can be used to allocate a buffer, and copy values into the buffer
+<!-- end_slide -->
+
+Network Programming -- C TCP Server
+---
+# getting our bytes in a row
 ```c +line_numbers
 #include <string.h> // memcpy is here for some reason
 
@@ -553,6 +558,11 @@ Network Programming -- C TCP Client
 `man connect`
 - connect takes the same parameters that we delt with bind
 - the OS will will dynamically assign an ip and port to the local socket, and connect to the sockaddr destribed in the `connect` call
+<!-- end_slide -->
+
+Network Programming -- C TCP Client
+---
+# connect (continued)
 ```c +line_numbers
 #include <sys/socket.h>
 #include <arpa/inet.h>
@@ -882,7 +892,7 @@ HOST = "127.0.0.1"
 PORT = 5555
 server = None # for our socket, we need a scope variable to assign outside our loop
 
-response = socket.getaddrinfo(HOST, PORT, family=AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE)
+response = socket.getaddrinfo(HOST, PORT, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM, flags=socket.AI_PASSIVE)
 
 for item in response:
     af, socktype, proto, canonname, sa = item;
@@ -943,6 +953,10 @@ PORT = 5555
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM, socket.IPPROTO_TCP)
 client.connect((HOST, PORT))
 ```
+<!-- end_slide -->
+
+network programming -- Python TCP Client
+---
 
 # With `socket.getaddrinfo`
 ```python +line_numbers
@@ -952,18 +966,18 @@ HOST = "127.0.0.1"
 PORT = 5555
 client = None # for our socket, we need a scope variable to assign outside our loop
 
-response = socket.getaddrinfo(HOST, PORT, family=AF_UNSPEC, type=socket.SOCK_STREAM)
+response = socket.getaddrinfo(HOST, PORT, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM)
 
 for item in response:
     af, socktype, proto, canonname, sa = item;
 
     try:
-        server = socket.socket(af, socktype, proto);
+        client = socket.socket(af, socktype, proto);
     except OSError as msg:
         client = None
         continue
     try:
-        s.connect(sa)
+        client.connect(sa)
     except OSError as msg:
         client.close()
         client = None
@@ -1067,7 +1081,7 @@ bytes_tx = 0
 
 while bytes_tx < len(payload):
     # will evaluate to the bytes at the index up until the end of the payload bytes object
-    delta = client.send(payload[bytes_tx:-1]
+    delta = client.send(payload[bytes_tx:-1])
 
     bytes_tx = bytes_tx + delta
 
@@ -1078,7 +1092,6 @@ while bytes_tx < len(payload):
 # using a previously created client socket
 message = Message(0, "this will echo to the screen!")
 payload = message.serialize()
-bytes_tx = 0
 client.sendall(payload)
 ```
 <!-- end_slide -->
@@ -1093,7 +1106,7 @@ network programming -- Python recv
 - once a complete message has been received, we can concatenate the bytearray to bytes
 
 ```python +line_numbers
-MESSAGE_HEADER = 40 # a uint8_t and a uint32_t
+MESSAGE_HEADER = 5 # a uint8_t and a uint32_t
 
 bytes_tx = 0
 payload = bytearray() # we use a bytearray() because "bytes" are immutable
@@ -1117,6 +1130,7 @@ now that we have received a buffer, we can use `struct.unpack` to deserialize it
 - Similar to the serialization process, we provide a format string for how the data exists in the packed bytes.
 - the results of struct.unpack is a tuple containing a number of items declared in the format string. if 1 item is declared, the result is a tuple with 1 item
 - the order of items in the tuple are the same order as declared in the format string
+- the size of the provided bytes must match the size described by the format string
 
 # `struct.unpack`
 
@@ -1125,13 +1139,19 @@ import struct
 
 # recv bytes and assign to payload
 
-format_string = "@H"
+# we specify the data is in network byte order.
+# unpack will unpack the paylod into host byte order
+format_string = "!B"
 
 # the format string specifies an unsigned short, or our uint8_t
 # message_type will be a tuple contianing a single item
 message_type = struct.unpack(format_string, payload)
 message_type[0] # index 0 to access the single item
 ```
+<!-- end_slide -->
+
+network programming -- Python deserialization
+---
 
 # unpacking the tuple
 - a tuple can be "unpacked" or assigned to individual values
@@ -1168,7 +1188,7 @@ threads = []
 
 while True:
     conn, addr = server.accept()
-    t = threading.Thread(target=handle_client, args(client,))
+    t = threading.Thread(target=handle_client, args=(conn,))
     t.start()
     threads.append(t)
 
