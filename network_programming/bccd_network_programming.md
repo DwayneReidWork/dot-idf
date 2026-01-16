@@ -1093,7 +1093,7 @@ network programming -- Python recv
 - once a complete message has been received, we can concatenate the bytearray to bytes
 
 ```python +line_numbers
-MESSAGE_HEADER 40 # a uint8_t and a uint32_t
+MESSAGE_HEADER = 40 # a uint8_t and a uint32_t
 
 bytes_tx = 0
 payload = bytearray() # we use a bytearray() because "bytes" are immutable
@@ -1108,3 +1108,79 @@ while bytes_tx < MESSAGE_HEADER:
 
 payload = bytes(payload)
 ```
+<!-- end_slide -->
+
+network programming -- Python deserialization
+---
+# deserialization
+now that we have received a buffer, we can use `struct.unpack` to deserialize it.
+- Similar to the serialization process, we provide a format string for how the data exists in the packed bytes.
+- the results of struct.unpack is a tuple containing a number of items declared in the format string. if 1 item is declared, the result is a tuple with 1 item
+- the order of items in the tuple are the same order as declared in the format string
+
+# `struct.unpack`
+
+```python
+import struct
+
+# recv bytes and assign to payload
+
+format_string = "@H"
+
+# the format string specifies an unsigned short, or our uint8_t
+# message_type will be a tuple contianing a single item
+message_type = struct.unpack(format_string, payload)
+message_type[0] # index 0 to access the single item
+```
+
+# unpacking the tuple
+- a tuple can be "unpacked" or assigned to individual values
+```python +line_numbers
+# in this example, I am expecting a tuple of 3 items, each outputting to their respective a, b, c, for the 0, 1, 2 index
+a, b, c = struct.unpack(....)
+```
+
+- unpacking a single item tuple requires a variable with a trailing comma
+```python +line_numbers
+message_type, = struct.unpack(format_string, payload)
+```
+<!-- end_slide -->
+
+network programming -- Python Threading Intro
+---
+# `threading` module
+- threading in python is similar to threading in C, but with python syntax!
+- a thread object can be created with a "target" function
+- positional arguments can be passed as a tuple with the "args" parameter
+
+```python +line_numbers
+import threading
+
+def handle_client(client):
+    while True:
+        payload = client.recv()
+        ## handle payload, send response
+        bytes_tx = client.send()
+
+# create a TCP server socket assigned to `server`
+
+threads = []
+
+while True:
+    conn, addr = server.accept()
+    t = threading.Thread(target=handle_client, args(client,))
+    t.start()
+    threads.append(t)
+
+for t in threads:
+    t.join()
+```
+<!-- end_slide -->
+
+network programming -- Python Threading Intro
+---
+# hands on:
+1. create a python server that replicates the c server protocol
+2. create a python client that replicates the c client protocol
+3. ???
+4. profit

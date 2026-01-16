@@ -53,6 +53,8 @@
 - add continue/break in the looping section
 - add keyboard i/o
 - finish file i/o
+- beef up the functions section to discuss positional and named arguments
+    - discuss how python can have variable arguments (same function with more or less arguments)
 
 # network programming
 - rewrite serialization to use a type, length, value
