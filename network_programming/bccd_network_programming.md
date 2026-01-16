@@ -514,6 +514,10 @@ Network Programming -- C TCP Server
 ```c +line_numbers
 ssize_t send_all(int fd, void *buffer, size_t length, int flags);
 ```
+<!-- end_slide -->
+
+Network Programming -- C TCP Server
+---
 # send_all implementation
 <!-- pause -->
 ```c +line_numbers
@@ -582,6 +586,8 @@ server_addr.sin_family = AF_INET;
 
 int status = connect(client_fd, (struct sockaddr*)&server_addr, sizeof(struct sockaddr_in));
 ```
+- notice on line 17 I dereference and cast our `struct sockaddr_in` to a `struct sockaddr *`.
+- connect handles ipv4 or ipv6 sockaddr types (`_in`, `_in6`) and uses the "generic" `struct sockaddr` type as the function parameter
 <!-- end_slide -->
 
 Network Programming -- C TCP Client
@@ -759,6 +765,10 @@ Network Programming -- C Threading Intro
     - `man pthread_create`  -- describes the creation of threads
     - `man pthread_join`    -- describes `joining` on pthreads to wait on a thread and optionally receive the output from a completed thread
     - `man pthread_detach`  -- `detatch` from a thread, normally used when the thread results and resources are not needed by the main thread.
+<!-- end_slide -->
+
+Network Programming -- C Threading Intro
+---
 
 ## pthread resource sharing
 - pthreads share the same `heap` as the main process thread. a pointer to a data structure can be passed to a thread and the new thread can access it
@@ -780,17 +790,16 @@ Network Programming -- C Threading Intro
 
 Network Programming -- C Threading Intro
 ---
-# Creating a thread
-- our thread function must be return a `void *` and take a `void *` as its only argument. this lets us optionally return data of any type, while also accepting data of any type
-
-## handle_client example
+# handle_client thread example
 - this is a simple example that doesnt handle partial send/recv or perform data serialization
 ```c +line_numbers
+// we define a struct to pass as our `void *` argument
 struct thread_ctx {
     int fd;
     // other data a specific thread might need
 };
 
+// our handle_cllient function matches the expected function signature described in pthread_create
 void *handle_client(void *context) {
     struct thread_ctx *ctx = (struct thread_ctx *)context; // cast input to expected type
 
@@ -806,7 +815,6 @@ void *handle_client(void *context) {
     }
 
     close(ctx->fd);
-
     // the main thread and child threads all share the same heap,
     // freeing it here frees this pointer in all threads.
     // do NOT free in the main thread or a double free and segfault can happen
@@ -883,7 +891,6 @@ client = server.accept()
 network programming -- Python TCP Server
 ---
 # `socket.getaddrinfo`
-- the socket module provides a wrapper for `getaddrinfo`
 
 ```python +line_numbers
 import socket
@@ -1060,8 +1067,6 @@ The `format_string` is being dynamically created based on the values provided to
 - our C struct `type` property is an `uint8_t` and the format specifier for that is `B`
 - next, our C struct `length` property is an `uint32_t` and the format specifier for that is `I`
 - lastly, we need to convert our `value` string to bytes with the string `.encode()` function. we use its length to set the final specifier of `{length}s`. the length is used to tell pack how many bytes to pack into the `bytes` output
-
-Using the features of OOP, we have created a new Class for message passing that we can serialize when needed and we can call `len()` on the resulting bytes object to determine the amount of bytes in the fully packed messge
 <!-- end_slide -->
 
 network programming -- Python send
