@@ -434,7 +434,7 @@ Network Programming -- C TCP Server
 - when receiving a message, an endpoint can first read a uint32_t to determine the length of the message, then read `length` bytes
 - our `void *message` can be an encapsulated message, parsed by looking at the first `uint8_t` to determine the type, then parsing the rest of the message based off the type
 ```
-[uint8_t type][void *data]
+[uint8_t type][uint32_t length][void *data]
 ```
 <!-- end_slide -->
 
@@ -474,7 +474,10 @@ offset += sizeof(uint8_t);
 memcpy(buffer + offset, &length, sizeof(uint32_t));
 offset += sizeof(uint32_t);
 
+uint32_t full_message = htonl(total_size);
 memcpy(buffer + offset, message.value, message.length);
+// we can send the total size of our message, followed by the message bytes themselves
+ssize_t bytes_sent = send(client_fd, &full_message, sizeof(uint32), 0);
 // I now have a contiguous buffer I can send
 ssize_t bytes_sent = send(client_fd, buffer, total_size, 0);
 
@@ -486,15 +489,29 @@ Network Programming -- C TCP Server
 # recv the buffer
 - on the receiving end, we can create a message struct and fill properties
 ```c +line_numbers
+uint32_t total_size = 0;
 struct message message = {0};
-recv(fd, &message.type, sizeof(uint8_t), 0);
-recv(fd, &message.length, sizeof(uint32_t), 0);
 
+// recv the total message size
+recv(fd, &total_size, sizeof(uint32_t), 0);
+total_size = ntohl(total_size);
+
+// allocate the full message bytes and read
+char *buffer = calloc(total_size, sizeof(char));
+recv(fd, buffer, total_size);
+
+// memcpy the values into the struct properties
+memcpy(&message.type, buffer, sizeof(uint8_t));
+memcpy(&message.length, buffer + sizeof(uint8_t), sizeof(uint32_t));
+
+// swap to host endianess
 message.type = ntohs(message.type);
 message.length = ntohl(message.length);
 
+// allocate the value buffer and copy the rest of the buffer into our message->value
 message.value = calloc(message.length, sizeof(char));
-recv(fd, message.value, message.length, 0);
+memcpy(&message.value, buffer + sizeof(uint8_t) + sizeof(uint32), message->length);
+free(buffer);
 ```
 - we have successfully deserialized a byte stream from the network into structured data
 - the send and receive example do not handle partial read/writes

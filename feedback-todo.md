@@ -58,6 +58,7 @@
 
 # network programming
 - rewrite serialization to use a type, length, value
+    - also send total message length, then parse the individual properties from a full byte array
 - add UDP
 
 # All
