@@ -33,7 +33,7 @@
 - sections to add:
     - 'function' like macro
     - add a sizeof section, potentially with/before/after functions?
-    - add a typedef function -- until then, dont talk about typedef
+    - add a typedef section -- until then, dont talk about typedef
         - using struct tends to add more clarity, while using typedef can obscure the data type
         - typedef makes sense on "opaque" data types
 
@@ -41,12 +41,12 @@
 - add keyboard i/o
 - file operations and i/o blocking
 - cmake/better hello-world slides
+- section on file operations
 
 
 
 ## make these combined section? like python and C?
 - section on threading
-- section on file operations
 
 # Python Languge
 
@@ -57,8 +57,6 @@
     - discuss how python can have variable arguments (same function with more or less arguments)
 
 # network programming
-- rewrite serialization to use a type, length, value
-    - also send total message length, then parse the individual properties from a full byte array
 - add UDP
 
 # All

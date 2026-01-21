@@ -772,8 +772,8 @@ Network Programming -- C Threading Intro
 ---
 
 # Why Threading?
-- our current tcp server handles requests `concurrently`, or operations happen one at a time
-- threading is a mechanism for creating another block of executable code that runs `asyncronously` or at the same time as our main block of code
+- our current tcp server handles requests `asyncronously`, or operations happen one at a time
+- threading is a mechanism for creating another block of executable code that runs `concurrently` or at the same time as our main block of code
 - our `accept`, `recv`, and `send` calls are blocking. The main thread of execution will no longer run untill that call is complete
 - our `accept` call can be blocked in one thread, while a separate thread handles the `recv` and `send` calls of a specific client
 
@@ -1103,7 +1103,7 @@ bytes_tx = 0
 
 while bytes_tx < len(payload):
     # will evaluate to the bytes at the index up until the end of the payload bytes object
-    delta = client.send(payload[bytes_tx:-1])
+    delta = client.send(payload[bytes_tx:])
 
     bytes_tx = bytes_tx + delta
 

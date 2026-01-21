@@ -1768,6 +1768,12 @@ Building a 'Buisness "Hello, World!"' live demo
 
 Input / Output
 ---
-- user input, from a keyboard
+- writing output to the screen
+- user input from a keyboard
 - reading and writing files with `stdio.h` [6.8]
-- TODO
+<!-- end_slide -->
+
+Input / Output
+---
+# writing output to the screen
+Writing output to the screen 
