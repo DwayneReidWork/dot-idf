@@ -57,6 +57,7 @@
     - discuss how python can have variable arguments (same function with more or less arguments)
 
 # network programming
+- add socket constants AF_INET, AF_INET6, SOCK_STREAM, IPPROTO_TCP
 - add UDP
 
 # All

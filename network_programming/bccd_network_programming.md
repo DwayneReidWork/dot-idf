@@ -334,10 +334,10 @@ Network Programming -- C TCP Server
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-struct sockaddr server_addr = {0};
-server_addr.sin_family = AF_INET   // from documentation
-server_addr.sin_port = htons(5555) // convert our 5555 short value into network byte order
-server_addr.sin_addr = ???         // another rabbit hole, what is this `struct in_addr`?
+struct sockaddr_in server_addr = {0};
+server_addr.sin_family = AF_INET;   // from documentation
+server_addr.sin_port = htons(5555); // convert our 5555 short value into network byte order
+server_addr.sin_addr = ???;         // another rabbit hole, what is this `struct in_addr`?
 ```
 
 the sin_addr property of the sockaddr_in is as follows:
@@ -682,7 +682,7 @@ int status = 0;
 struct addrinfo hints = {0};
 struct addrinfo *response = NULL;
 
-hints.ai_family = AI_UNSPEC;
+hints.ai_family = AF_UNSPEC;
 hints.ai_socktype = SOCK_STREAM;
 hints.ai_flags = AI_PASSIVE; // use this if the `node` is NULL
 
