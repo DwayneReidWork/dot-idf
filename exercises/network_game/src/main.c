@@ -5,6 +5,7 @@
 #include <game/level4.h>
 #include <game/level5.h>
 #include <game/level6.h>
+#include <game/level7.h>
 
 #include <network/network.h>
 
@@ -25,9 +26,17 @@ int main(int argc, char **argv) {
   int status = 0;
   int running = 1;
 
+  char *port = NULL;
   srand(time(NULL));
 
-  server_fd = network_tcp_listen(NULL, PORT);
+  if (1 == argc) {
+      printf("[+] no port provided, using default: %s\n", PORT);
+      port = PORT;
+  } else {
+      port = argv[1];
+  }
+
+  server_fd = network_tcp_listen(NULL, port);
   if (-1 == server_fd) {
     printf("[X] unable to create tcp listener\n");
     goto END;
@@ -74,6 +83,11 @@ int main(int argc, char **argv) {
     if (-1 == status) {
         goto CLEANUP;
     }
+
+    // status = level7_start(&game);
+    // if (-1 == status) {
+    //     goto CLEANUP;
+    // }
 
     printf("[+] You have made it to the end of the levels! check back later for an updated binary\n");
     running = 0;

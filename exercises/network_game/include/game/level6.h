@@ -7,4 +7,3 @@ int level6_start(game_t *game);
 
 #endif
 
-

@@ -18,7 +18,7 @@ void game_greeting(int fd) {
 
     inet_ntop(AF_INET, &sockaddr.sin_addr, local_ip, socklen);
 
-    printf("[+] Welcome v0.5.0\n\n");
+    printf("[+] network_game v0.5.0\n\n");
     printf("[+] Rules:\n- network messages are NOT null terminated\n- all integer types are in network byte order\n- uint8_t are single byte, and their order does not change\n- the default message format, or GAME_MESSAGE, is [uint32_t - size {N}][{N} bytes - message]\n- if not specified, messages from the server will be in that format\n- if a correct response (format and content) is received, another message will be sent\n- asside from this welcome prompt, all communication will be through a TCP connection\n\n");
     printf("[!] This server is listening on %s:%d\n", local_ip, ntohs(sockaddr.sin_port));
 }

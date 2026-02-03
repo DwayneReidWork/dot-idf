@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define LEVEL3_PROMPT "[+] level 3: mod your port number by 256 and save it as a uint8_t key.\n - xor each byte of your name by the key and send it back in the following format [uint8_t - key][uint8_t - xor_name size {N}][{N} bytes xor_name]"
+#define LEVEL3_PROMPT "[+] level 3: mod your port number by 256 and save it as a uint8_t key.\n - your port number should be in 'host byte order' before you mod it. review documentation (for struct sockaddr_in) if in c. \n - xor each byte of your name by the key and send it back in the following format [uint8_t - key][uint8_t - xor_name size {N}][{N} bytes xor_name]"
 
 int level3_start(game_t *game) {
     int status = -1;

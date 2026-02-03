@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define LEVEL6_PROMPT "[+] level 6: I hope your array is in order.\n - take array[3][7] and array[4][4] and add them together and then mod them by 256.\n - that is going to be the new xor key.\n - send back the correct new key and move on to level 7."
+#define LEVEL6_PROMPT "[+] level 6: I hope your array is in order.\n - take array[3][7] and array[4][4] and add them together and then mod the result by 256.\n - that is going to be the new xor key.\n - send back the correct new key xor'd with the old key, then use the new key from here on out"
 
 int level6_start(game_t *game) {
     int status = -1;
