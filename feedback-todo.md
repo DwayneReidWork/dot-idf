@@ -53,6 +53,16 @@
 - add continue/break in the looping section
 - add keyboard i/o
 - finish file i/o
+- importing our own files
+- implement cli parsing
+    - sys
+    ```
+    import sys
+    len(sys.argv)
+    sys.argv[n]
+    ```
+    - argparse?
+
 - beef up the functions section to discuss positional and named arguments
     - discuss how python can have variable arguments (same function with more or less arguments)
 
