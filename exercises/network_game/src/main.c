@@ -84,10 +84,10 @@ int main(int argc, char **argv) {
         goto CLEANUP;
     }
 
-    // status = level7_start(&game);
-    // if (-1 == status) {
-    //     goto CLEANUP;
-    // }
+    status = level7_start(&game);
+    if (-1 == status) {
+        goto CLEANUP;
+    }
 
     printf("[+] You have made it to the end of the levels! check back later for an updated binary\n");
     running = 0;

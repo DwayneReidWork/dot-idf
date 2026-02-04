@@ -19,7 +19,7 @@ void game_greeting(int fd) {
     inet_ntop(AF_INET, &sockaddr.sin_addr, local_ip, socklen);
 
     printf("[+] network_game v0.5.0\n\n");
-    printf("[+] Rules:\n- network messages are NOT null terminated\n- all integer types are in network byte order\n- uint8_t are single byte, and their order does not change\n- the default message format, or GAME_MESSAGE, is [uint32_t - size {N}][{N} bytes - message]\n- if not specified, messages from the server will be in that format\n- if a correct response (format and content) is received, another message will be sent\n- asside from this welcome prompt, all communication will be through a TCP connection\n\n");
+    printf("[+] Rules:\n- strings in messages are NOT null terminated\n- all integer types are in network byte order\n- uint8_t are single byte, and their order does not change\n- the default message format, or GAME_MESSAGE, is [uint32_t - size {N}][{N} bytes - message]\n- if not specified, messages from the server will be in that format\n- if a correct response (format and content) is received, another message will be sent\n- aside from this welcome prompt, all communication will be through a TCP connection\n\n");
     printf("[!] This server is listening on %s:%d\n", local_ip, ntohs(sockaddr.sin_port));
 }
 
@@ -116,4 +116,17 @@ void game_xor_buffer(game_t *game, char *buffer, size_t buffer_len) {
     for (int i = 0; i < buffer_len; i++) {
         buffer[i] = buffer[i] ^ game->key;
     }
+}
+
+void game_array_scramble(game_t *game) {
+    for (int i = 0; i < GAME_ARRAY_X; i++) {
+        for (int j = 0; j < GAME_ARRAY_Y; j++) {
+            game->array[i][j] = (game->array[i][j] % 1024) + game->key;
+            game_xor_buffer(game, (char *)&game->array[i][j], sizeof(uint16_t));
+        }
+    }
+}
+
+void game_server_prompt(int level) {
+    printf("[+] level %d: a GAME_MESSAGE has been sent over the tcp connection\n", level);
 }

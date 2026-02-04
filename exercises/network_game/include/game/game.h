@@ -31,7 +31,8 @@ ssize_t game_recv_all(game_t *game, char *message, size_t message_len);
 
 void game_xor_buffer(game_t *game, char *buffer, size_t buffer_len);
 
-// TODO:
-void game_array_scramble();
+void game_array_scramble(game_t *game);
+
+void game_server_prompt(int level);
 
 #endif

@@ -44,6 +44,8 @@ int level5_start(game_t *game)
         goto END;
     }
 
+    game_server_prompt(5);
+
     game_xor_buffer(game, (char *)array, (GAME_ARRAY_X * GAME_ARRAY_Y) * sizeof(uint16_t));
     bytes_tx = game_send_all(game, (char *)array, (GAME_ARRAY_X * GAME_ARRAY_Y) * sizeof(uint16_t));
     if (-1 == bytes_tx) {

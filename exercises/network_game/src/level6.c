@@ -31,6 +31,8 @@ int level6_start(game_t *game) {
         goto END;
     }
 
+    game_server_prompt(6);
+
     bytes_tx = game_recv_all(game, (char *)&their_key, sizeof(uint8_t));
     if (-1 == bytes_tx) {
         goto END;

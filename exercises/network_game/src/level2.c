@@ -40,6 +40,7 @@ int level2_start(game_t *game) {
         goto END;
     }
 
+    game_server_prompt(2);
     bytes_tx = game_recv_all(game, (char *)&game->port, sizeof(uint16_t));
     if (-1 == bytes_tx) {
         goto END;

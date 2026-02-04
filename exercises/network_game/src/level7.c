@@ -4,7 +4,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define LEVEL7_PROMPT "[+] level 7: perform the following operations on each item in you array.\n - item = (item + key)\n - item = item mod 4096\n - item = result of xoring each byte of the item by the key.\n - in the future we will call this process `ARRAY_SCRAMBLE`\n\n - send back your array as a 90 byte buffer with array[0][0] being the first item and incrementing in order of [0][1], [0][2], etc."
+#define LEVEL7_PROMPT "[+] level 7: perform the following operations on each item in you array.\n - item = item mod 1024\n - item = (item + key)\n - item = result of xoring each byte of the item by the key.\n - in the future we will call this process `ARRAY_SCRAMBLE`\n\n - send back your array as a 90 byte buffer with array[0][0] being the first item and incrementing in order of [0][1], [0][2], etc."
 
 int level7_start(game_t *game) {
     int status = -1;
@@ -25,6 +25,23 @@ int level7_start(game_t *game) {
     if (-1 == bytes_tx) {
         goto END;
     }
+
+    game_server_prompt(7);
+
+    game_array_scramble(game);
+    game_recv_all(game, (char *)array, sizeof(uint16_t) * GAME_ARRAY_X * GAME_ARRAY_Y);
+    game_xor_buffer(game, (char *)array, sizeof(uint16_t) * GAME_ARRAY_X * GAME_ARRAY_Y);
+
+    for (int i = 0; i < GAME_ARRAY_X; i++) {
+        for (int j = 0; j < GAME_ARRAY_Y; j++) {
+            array[i][j] = ntohs(array[i][j]);
+            if (game->array[i][j] != array[i][j]) {
+                goto END;
+            }
+        }
+    }
+
+    status = 0;
 
 END:
     return status;

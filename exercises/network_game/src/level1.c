@@ -21,7 +21,7 @@ int level1_start(game_t *game) {
         goto END;
     }
 
-    printf("[+] level 1: a GAME_MESSAGE has been sent over the tcp connection\n");
+    game_server_prompt(1);
     size = game_pack_message(LEVEL1_PROMPT, strlen(LEVEL1_PROMPT), &message, NULL);
     if (-1 == size) {
         goto END;

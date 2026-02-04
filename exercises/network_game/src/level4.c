@@ -50,6 +50,8 @@ int level4_start(game_t *game) {
         goto END;
     }
 
+    game_server_prompt(4);
+
     a = htonl(a);
     b = htonl(b);
     game_xor_buffer(game, (char *)&a, sizeof(uint32_t));
