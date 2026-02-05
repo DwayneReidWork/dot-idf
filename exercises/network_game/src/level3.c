@@ -27,14 +27,14 @@ int level3_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_send_all(game, message, message_len);
+    bytes_tx = game_send_all(game->fd, message, message_len);
     free(message);
     if (-1 == bytes_tx) {
         goto END;
     }
     game_server_prompt(3);
 
-    bytes_tx = game_recv_all(game, (char *)&their_key, sizeof(uint8_t));
+    bytes_tx = game_recv_all(game->fd, (char *)&their_key, sizeof(uint8_t));
     if (-1 == bytes_tx) {
         goto END;
     }
@@ -43,7 +43,7 @@ int level3_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_recv_all(game, (char *)&name_len, sizeof(uint8_t));
+    bytes_tx = game_recv_all(game->fd, (char *)&name_len, sizeof(uint8_t));
     if (-1 == bytes_tx) {
         goto END;
     }
@@ -52,7 +52,7 @@ int level3_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_recv_all(game, name, name_len);
+    bytes_tx = game_recv_all(game->fd, name, name_len);
     if (-1 == bytes_tx) {
         goto END;
     }

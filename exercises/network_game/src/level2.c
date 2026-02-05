@@ -34,14 +34,14 @@ int level2_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_send_all(game, message, message_len);
+    bytes_tx = game_send_all(game->fd, message, message_len);
     free(message);
     if (-1 == bytes_tx) {
         goto END;
     }
 
     game_server_prompt(2);
-    bytes_tx = game_recv_all(game, (char *)&game->port, sizeof(uint16_t));
+    bytes_tx = game_recv_all(game->fd, (char *)&game->port, sizeof(uint16_t));
     if (-1 == bytes_tx) {
         goto END;
     }

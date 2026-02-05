@@ -22,22 +22,22 @@ int level8_start(game_t *game) {
     b = htons(b);
 
     message_len = game_pack_message(LEVEL8_PROMPT, strlen(LEVEL8_PROMPT), &message, game);
-    game_send_all(game, message, message_len);
+    game_send_all(game->fd, message, message_len);
     free(message);
-    game_server_prompt(7);
+    game_server_prompt(8);
 
     game_xor_buffer(game, (char *)&n, sizeof(uint32_t));
     game_xor_buffer(game, (char *)&a, sizeof(uint16_t));
     game_xor_buffer(game, (char *)&b, sizeof(uint16_t));
 
-    game_send_all(game, (char *)&n, sizeof(uint32_t));
-    game_send_all(game, (char *)&a, sizeof(uint16_t));
-    game_send_all(game, (char *)&b, sizeof(uint16_t));
+    game_send_all(game->fd, (char *)&n, sizeof(uint32_t));
+    game_send_all(game->fd, (char *)&a, sizeof(uint16_t));
+    game_send_all(game->fd, (char *)&b, sizeof(uint16_t));
 
     game->key = temp_key;
     temp_key = 0;
 
-    game_recv_all(game, (char *)&temp_key, sizeof(uint8_t));
+    game_recv_all(game->fd, (char *)&temp_key, sizeof(uint8_t));
     game_xor_buffer(game, (char *)&temp_key, sizeof(uint8_t));
 
     if (temp_key == game->key) {

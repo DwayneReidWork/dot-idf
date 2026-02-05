@@ -2,7 +2,6 @@
 #include <game/level1.h>
 
 #include <stddef.h>
-#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -27,14 +26,14 @@ int level1_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_send_all(game, message, size);
+    bytes_tx = game_send_all(game->fd, message, size);
     if (-1 == bytes_tx) {
         goto END;
     }
 
     free(message);
 
-    bytes_tx = game_recv_all(game, (char *)&name_len, sizeof(uint8_t));
+    bytes_tx = game_recv_all(game->fd, (char *)&name_len, sizeof(uint8_t));
     if (-1 == bytes_tx) {
         goto END;
     }
@@ -43,7 +42,7 @@ int level1_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_recv_all(game, game->name, name_len);
+    bytes_tx = game_recv_all(game->fd, game->name, name_len);
     if (-1 == bytes_tx) {
         goto END;
     }

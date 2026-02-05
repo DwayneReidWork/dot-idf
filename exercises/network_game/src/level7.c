@@ -20,7 +20,7 @@ int level7_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_send_all(game, message, message_len);
+    bytes_tx = game_send_all(game->fd, message, message_len);
     free(message);
     if (-1 == bytes_tx) {
         goto END;
@@ -29,7 +29,7 @@ int level7_start(game_t *game) {
     game_server_prompt(7);
 
     game_array_scramble(game);
-    game_recv_all(game, (char *)array, sizeof(uint16_t) * GAME_ARRAY_X * GAME_ARRAY_Y);
+    game_recv_all(game->fd, (char *)array, sizeof(uint16_t) * GAME_ARRAY_X * GAME_ARRAY_Y);
     game_xor_buffer(game, (char *)array, sizeof(uint16_t) * GAME_ARRAY_X * GAME_ARRAY_Y);
 
     for (int i = 0; i < GAME_ARRAY_X; i++) {

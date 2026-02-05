@@ -25,7 +25,7 @@ int level6_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_send_all(game, message, message_length);
+    bytes_tx = game_send_all(game->fd, message, message_length);
     free(message);
     if (-1 == bytes_tx) {
         goto END;
@@ -33,7 +33,7 @@ int level6_start(game_t *game) {
 
     game_server_prompt(6);
 
-    bytes_tx = game_recv_all(game, (char *)&their_key, sizeof(uint8_t));
+    bytes_tx = game_recv_all(game->fd, (char *)&their_key, sizeof(uint8_t));
     if (-1 == bytes_tx) {
         goto END;
     }

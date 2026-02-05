@@ -35,7 +35,7 @@ int level4_start(game_t *game) {
         goto END;
     }
 
-    bytes_tx = game_send_all(game, message, message_len);
+    bytes_tx = game_send_all(game->fd, message, message_len);
     free(message);
     if (-1 == bytes_tx) {
         goto END;
@@ -44,7 +44,7 @@ int level4_start(game_t *game) {
     message_len = game_pack_message(xor_prompt, xor_prompt_len, &message, game);
     free(xor_prompt);
 
-    bytes_tx = game_send_all(game, message, message_len);
+    bytes_tx = game_send_all(game->fd, message, message_len);
     free(message);
     if (-1 == bytes_tx) {
         goto END;
@@ -57,10 +57,10 @@ int level4_start(game_t *game) {
     game_xor_buffer(game, (char *)&a, sizeof(uint32_t));
     game_xor_buffer(game, (char *)&b, sizeof(uint32_t));
 
-    game_send_all(game, (char *)&a, sizeof(uint32_t));
-    game_send_all(game, (char *)&b, sizeof(uint32_t));
+    game_send_all(game->fd, (char *)&a, sizeof(uint32_t));
+    game_send_all(game->fd, (char *)&b, sizeof(uint32_t));
 
-    game_recv_all(game, (char *)&their_sum, sizeof(uint32_t));
+    game_recv_all(game->fd, (char *)&their_sum, sizeof(uint32_t));
     game_xor_buffer(game, (char *)&their_sum, sizeof(uint32_t));
 
     their_sum = ntohl(their_sum);

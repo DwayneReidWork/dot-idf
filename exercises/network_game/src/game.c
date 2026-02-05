@@ -64,16 +64,16 @@ END:
     return dst_size;
 }
 
-ssize_t game_send_all(game_t *game, char *message, size_t message_len) {
+ssize_t game_send_all(int fd, char *message, size_t message_len) {
     ssize_t delta = -1;
     ssize_t bytes_tx = 0;
 
-    if (NULL == game || NULL == message || 0 == message_len || game->fd < 0) {
+    if (NULL == message || 0 == message_len || fd < 0) {
         goto END;
     }
 
     while (bytes_tx != message_len) {
-        delta = send(game->fd, message + bytes_tx, message_len - bytes_tx, 0);
+        delta = send(fd, message + bytes_tx, message_len - bytes_tx, 0);
         if (-1 == delta || 0 == delta) {
             bytes_tx = -1;
             goto END;
@@ -86,16 +86,16 @@ END:
     return bytes_tx;
 }
 
-ssize_t game_recv_all(game_t *game, char *message, size_t message_len) {
+ssize_t game_recv_all(int fd, char *message, size_t message_len) {
     ssize_t delta = -1;
     ssize_t bytes_tx = 0;
 
-    if (NULL == game || NULL == message || 0 == message_len || game->fd < 0) {
+    if (NULL == message || 0 == message_len || fd < 0) {
         goto END;
     }
 
     while (bytes_tx != message_len) {
-        delta = recv(game->fd, message + bytes_tx, message_len - bytes_tx, 0);
+        delta = recv(fd, message + bytes_tx, message_len - bytes_tx, 0);
         if (-1 == delta || 0 == delta) {
             bytes_tx = -1;
             goto END;
@@ -142,4 +142,33 @@ uint8_t game_key_select(game_t *game, uint32_t *n, uint16_t *a, uint16_t *b) {
     }
 
     return game->array[*a % GAME_ARRAY_X][*b % GAME_ARRAY_Y] % 256;
+}
+
+int game_send_key_select(game_t *game, int fd, uint32_t n, uint16_t a, uint16_t b)
+{
+    ssize_t bytes_tx = 0;
+
+    n = htonl(n);
+    a = htons(a);
+    b = htons(b);
+    game_xor_buffer(game, (char *)&n, sizeof(uint32_t));
+    game_xor_buffer(game, (char *)&a, sizeof(uint16_t));
+    game_xor_buffer(game, (char *)&b, sizeof(uint16_t));
+
+    bytes_tx = game_send_all(fd, (char *)&n, sizeof(uint32_t));
+    if (-1 == bytes_tx) {
+        return -1;
+    }
+
+    bytes_tx = game_send_all(fd, (char *)&a, sizeof(uint16_t));
+    if (-1 == bytes_tx) {
+        return -1;
+    }
+
+    bytes_tx = game_send_all(fd, (char *)&b, sizeof(uint16_t));
+    if (-1 == bytes_tx) {
+        return -1;
+    }
+
+    return 0;
 }
