@@ -28,6 +28,7 @@ target_sources(${PROJECT_NAME}
     src/level5.c
     src/level6.c
     src/level7.c
+    src/level8.c
 )
 
 target_link_libraries(${PROJECT_NAME}

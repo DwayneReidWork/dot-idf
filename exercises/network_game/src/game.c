@@ -130,3 +130,16 @@ void game_array_scramble(game_t *game) {
 void game_server_prompt(int level) {
     printf("[+] level %d: a GAME_MESSAGE has been sent over the tcp connection\n", level);
 }
+
+uint8_t game_key_select(game_t *game, uint32_t *n, uint16_t *a, uint16_t *b) {
+
+    *n = rand() % 5000;
+    *a = rand() % 1000;
+    *b = rand() % 1000;
+
+    for (uint32_t i = 0; i < *n; i++) {
+        game_array_scramble(game);
+    }
+
+    return game->array[*a % GAME_ARRAY_X][*b % GAME_ARRAY_Y] % 256;
+}

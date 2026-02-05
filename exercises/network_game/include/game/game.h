@@ -35,4 +35,6 @@ void game_array_scramble(game_t *game);
 
 void game_server_prompt(int level);
 
+uint8_t game_key_select(game_t *game, uint32_t *n, uint16_t *a, uint16_t *b);
+
 #endif

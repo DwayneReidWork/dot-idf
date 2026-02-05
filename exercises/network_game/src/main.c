@@ -6,6 +6,7 @@
 #include <game/level5.h>
 #include <game/level6.h>
 #include <game/level7.h>
+#include <game/level8.h>
 
 #include <network/network.h>
 
@@ -85,6 +86,11 @@ int main(int argc, char **argv) {
     }
 
     status = level7_start(&game);
+    if (-1 == status) {
+        goto CLEANUP;
+    }
+
+    status = level8_start(&game);
     if (-1 == status) {
         goto CLEANUP;
     }
