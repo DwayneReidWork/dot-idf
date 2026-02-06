@@ -17,7 +17,6 @@ int level9_start(game_t *game) {
     uint16_t b = 0;
     uint16_t their_port = 0;
     uint16_t my_port = 0;
-    char port_str[6] = {0};
     uint8_t new_key = 0;
 
     ssize_t bytes_tx = 0;
@@ -47,9 +46,9 @@ int level9_start(game_t *game) {
     game_xor_buffer(game, (char *)&their_port, sizeof(uint16_t));
     their_port = htons(their_port);
 
-    snprintf(port_str, 5, "%d", their_port);
+    snprintf(game->their_port_str, 5, "%d", their_port);
 
-    game->fd_2 = network_tcp_connect("127.0.0.1", port_str);
+    game->fd_2 = network_tcp_connect("127.0.0.1", game->their_port_str);
     if (-1 == game->fd_2) {
         goto END;
     }

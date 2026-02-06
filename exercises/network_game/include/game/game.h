@@ -18,6 +18,7 @@ typedef struct _game {
   struct sockaddr_in addr;
   socklen_t addr_len;
   uint8_t key;
+  char their_port_str[6];
 } game_t;
 
 void game_greeting(int fd);
