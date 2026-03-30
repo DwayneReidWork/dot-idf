@@ -30,6 +30,8 @@ Overview
 - Main
 - Building a "Buisness "Hello, World!"
 - Input / Output
+- Threading
+- Mutiplexing
 <!-- end_slide -->
 
 Why C
@@ -40,8 +42,9 @@ Why C
 - Low level of abstraction
     - large amount of control and system integration
 <!-- new_line -->
-- Compiled language
+- Compiled and Statically Typed
     - compiled code is faster and more portable than interpreted code
+    - statically typed languages offer more compiler time gaurantee
 <!-- new_line -->
 - Simple
     - C has a small amount of keywords (~50)
@@ -65,7 +68,11 @@ Program Execution -- How Operating Systems Run Code
 Program Execution -- Memory Layout of a Linux Process
 ---
 - placeholder for process map image
-- presenter notes to discuss main components of process memory in the image
+    - show / discuss stack
+    - show heap, will discuss later
+    - show bss/data/text section
+        - discuss how code is loaded into text section
+            - OS finds the entry point (main) and execution starts there
 <!-- end_slide -->
 
 The Road to "Hello, World!"
@@ -176,7 +183,7 @@ The Road to "Hello, World!" -- Include Files && Libraries
 
 The Road to "Hello, World!" -- hello_world.c File Review
 ---
-```file +line_numbers {1|3|4,16|5|6|8,11|12|15} +exec
+```file +line_numbers +exec
 path: code/hello_world.c
 language: c
 ```
@@ -237,10 +244,10 @@ Variables and Preprocessor Directives
 
 Variables and Preprocessor Directives -- Syntax
 ---
-- A variable is a named storage location in memory that holds data
+- A variable is a lable to a storage location in memory that holds data
 - The name must be unique across variable names
 - Variable types tell the compiler how to interperate the data at the location
-- Variables do not have to be initialized -- but you should.
+- Variables do not have to be initialized -- but you *will*
     - uninitialized variables will hold junk data because operating system optimizations.
 - use cases: store results to operations, report statuses, store information for later use
 - variables reside in the region of memory called the stack
@@ -254,6 +261,8 @@ int my_other_int = 5; // [6.3]
 Variables and Preprocessor Directives
 ---
 - placeholder slide for showing variables on the stack, and holding potential junk data
+    - demonstrate variables are a label to a memory address
+    - the memory address is determined by the Stack Pointer + Stack Offset
 <!-- end_slide -->
 
 Variables and Preprocessor Directives -- Data Types
@@ -665,6 +674,8 @@ Control Flow [6.1, 6.12*]
 - `while`
 - `do while`
 
+- `continue` && `break`
+
 # Unconditional
 - `goto`
 <!-- end_slide -->
@@ -949,6 +960,34 @@ do {
 
 <!-- end_slide -->
 
+Control Flow -- `break` && `continue`
+---
+`break`    - keyword to "break" the iterative execution flow, and continue code execution outside the `while` or `for` loop
+`continue` - keyword to "continue" the iterative execution flow, immediately restart the loop on the next iteration
+
+```c
+int x = 0
+while (1) {
+    x = rand() % 100;
+    if (x > 75) {
+        break;
+    }
+}
+// break "breaks" the loop and execution happens here
+
+for (int i = 0; i < 100; i++) {
+    if (i % 2 == 0) {
+        // if i is even, go to the next iteration (increment i and start again)
+        continue; 
+    }
+
+    // this will only print odd numbers
+    printf("%d\n", i);
+}
+```
+
+<!-- end_slide -->
+
 Control Flow -- goto
 ---
 - `goto` is an uncoditional control flow mechanism
@@ -1064,6 +1103,7 @@ int add_numbers(int a, int b) {
     - function label: the label must be unique in the scope in which the function was declared
     - `()`: open and closed parentheses, with optional parameters
         - function parameters are a comma separated list of `<type> <label>`
+        - function parameters have function scope
     - `{...; return <>;}`: a function body, with a return keyword returing optional data
 <!-- end_slide -->
 
@@ -1082,18 +1122,18 @@ language: c
 
 Functions & Scope - Functions
 ---
-- placeholder for stack pointer & instruction pointer
-- parameter values are "copied" into the function
-- code lives in the text section
-- functions label chunks of code
-- new stack frame when a function is called
-- stack frame is removed and function scope variables are "destroyed"
+- placeholder for function stack frame demonstration
+    - demonstrate the instruction pointer in the text section of process memory "jumping" to the called function"
+    - demonstrate a new stack frame being created, and the stack pointer being "moved" to the base of the new stack frame
+    - demonstrate how parameter *values* are *copied* in to the new stack frame
+    - demonstrate how when the function returns, the stack frame is moved back to its original position and function local variables (and paramters) are no longer *visible*
+    - changes to function local variables have no effect on caller local variables
 <!-- end_slide -->
 
 Functions & Scope - Function Prototypes
 ---
-- function prototypes are feature that allows you to declare a functions specification separate to its implementation
-- the functions specification, refered to as a `function signature` has the following syntax
+- function prototypes are a feature that allows you to declare a functions specification separate to its implementation
+- the functions specification, refered to as a `function prototypes` has the following syntax
 ```c +line_numbers
 <type> <lable> (<optional parameters>); // note the semi-colon at the end, and no function body
 
@@ -1122,7 +1162,7 @@ Functions & Scope - Function Prototypes, File Scope, and Linking
 
 # file scope
 - when including a header file (.h) for a library, the convention is that .h files only contain definitions or declerations
-    - `#defines`, `function prototypes`, `global variables`
+    - `#defines`, `function prototypes`, `file scope variables`
 - during the c preprocessor phase, include files are "inserted" into the source file, adding those definitions to the current file scope
 
 # linking
@@ -1331,6 +1371,7 @@ Pointers
 - the return type of `malloc` is `void *`, meaing it's a pointer to data, the developer knows what is there because they called the size (in bytes)
 - the data pointed to by `malloc` exists somewhere on the heap, rather than the stack
 - the `sizeof(<type>)` can help allocate memory of the appropriate size. it yields the size in bytes of the type provided
+    - do NOT use `sizeof(<variable>)` -- this is bad practice, adds ambiguity, and introduces bugs into your code
 ```c +line_numbers
 #include <stdlib.h> // this also contains a definition of NULL as 0x0
 
@@ -1754,9 +1795,9 @@ Main
 - argc, argv live code demonstration
 <!-- end_slide -->
 
-
 Building a 'Buisness "Hello, World!"' live demo
 ---
+- TODO: Create slides for this content
 - rebuilding our hello world
 - encapsulating logic into a function
 - putting that function in its own header and source file
@@ -1768,12 +1809,100 @@ Building a 'Buisness "Hello, World!"' live demo
 
 Input / Output
 ---
+## Computer Input and Output (I/O)
 - writing output to the screen
 - user input from a keyboard
-- reading and writing files with `stdio.h` [6.8]
+- writing to and reading from a file
+
+## `#include <stdio.h>`
+- `stdio.h` is the "c standard library" "input and output" library
+- contains standardized functionality for input and output that is "agnostic" from the platform compiled for
+- `stdio.h` functions "wrap" or "encapsulate" operating system primitives into a standard interface
+<!-- end_slide -->
+
+Input / Output
+---
+## Process Lifecycle Tangent
+- A file descriptor is a numeric representation to resources managed by the operating systems
+- when you open a file, your process doesnt have access to the sectors on the hard drive, but a logical abstraction to the file as a number (an `int`)
+- file descriptors are not numeric references to file resources, they can be network sockets, input streams, output streams, drivers, etc.
+
+- when a process starts, it has 3 file descriptors open
+    - 0 -- stdin  -- standard in  -- used to send input to the process (normally from the keyboard)
+    - 1 -- stdout -- standard out -- used to send output from the process (normally to the screen)
+    - 2 -- stderr -- standard err -- used to output errors from the process (normally printed to the screen from a different stream)
+
+- reading input from the user (keyboard) and displaying output to the screen (terminal) will operate on `stdin` and `stdout`
+
 <!-- end_slide -->
 
 Input / Output
 ---
 # writing output to the screen
-Writing output to the screen 
+- writing output to the screen is often refered to as "printing"
+    - old programs would literally print pages from a printer before screens became prolific
+
+# `man 3 printf` -- man page containing a collection of string formatting and printing functions
+- `printf`  -- will print to `stdout` via the terminal
+- `fprintf` -- will print to a `FILE *` or a file stream
+    - `stdin`, `stdout`, `stderr` are file scope defined in `stdio.h` as file streams and can be the target file stream to print
+- `dprint`  -- will print to a file descriptor
+- `sprintf` -- will print to a `char *` buffer
+- `snprintf` -- the cooler, safer sprintf, which can cap the bounds of a format string expansion
+
+<!-- end_slide -->
+
+Input / Output
+---
+
+# format strings
+- All the functions on the previous slide have a format string as a paramter, followed by `...`
+- A format string is a mechanism where a developer can describe the string format of the output and have variable arguments "injected" into the format string
+
+```c +line_numbers +exec
+#include <stdio.h>
+
+int main() {
+    int x = 5;
+    printf("my number is: %d", x);
+
+    /*
+        this format string will "inject" the integer 5 as a string into the location of "%d"
+        format string formatting characters can be found in `man 3 printf`
+    */
+
+    return 0;
+}
+```
+<!-- end_slide -->
+
+Input / Output
+---
+## A Note on `sprintf` and `snprintf`
+- `sprintf` and `snprintf` both format a string, and put the result into a destrination `char *`
+- the destination `char *` must be pre-allocated, and have enough room to hold the expanded format string
+- when `injecting` a variable into a format string, such as an `int` a max int represented as a string can take up ~10 characters
+    - a format string such as "This is my number %d" where in `int` is injected would need to be at least 29 bytes
+        - 18 for the characters "This is my number "
+        - 10 for the string representation of the most placevalues taken up by an `int`
+        - 1 additional byte for a null byte
+
+- the primary difference between `sprintf` and `snprintf` is that you can force `snprintf` to truncate the output to be the size of the destination buffer
+- MOST string related functions have an `n` version that allow you to bound their operations
+    - this is generally safer, as you can not guarantee `char *`s are null terminated
+
+
+<!-- end_slide -->
+
+Input / Output
+---
+## user input (from keyboard)
+- when a process starts `stdin` is opened and and keyboard input can be "streamed" to the process
+- `man fgetc`
+- `man getline`
+- `man scanf`
+- `man sscanf`
+<!-- end_slide -->
+
+Input / Output
+---
