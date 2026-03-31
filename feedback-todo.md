@@ -1,17 +1,10 @@
 # C Languge
 
-- add keyboard i/o
-- file operations and i/o blocking
-- cmake/better hello-world slides
-- also do a section on make (+ bear for compile_commands.json)
-- section on file operations
-- threading section
-- more advanced preprocessor stuff
-- add section on unions after structs
-- add section on poll/select and discuss epoll, but not in depth
-
-- demonstrate a buffer overflow and why string/buffer safety is important
-- discuss use after free
+- [ ] cmake/better hello-world slides
+- [ ] threading section -> C and Networking
+- [?] more advanced preprocessor stuff
+- [?] add section on unions after structs 
+- [ ] add section on poll/select and discuss epoll, but not in depth -> network section
 
 # Python Languge
 
@@ -28,7 +21,7 @@
     ```
     - argparse?
 
-- threading - green threads
+- threading and multiprocessing
 
 - beef up the functions section to discuss positional and named arguments
     - discuss how python can have variable arguments (same function with more or less arguments)
@@ -41,4 +34,4 @@
 - break up networking and add those slides to python / C respectively
 
 # network_game
-- fix level 8s logic bug of xoring key by itself (zero)
+- fix level 8s logic bug of xoring key by itself (which becomes zero)

@@ -1774,7 +1774,7 @@ Main
 ----
 # congradulations!
 - thats (most of) c!
-- I told you it was simple!
+- we have the foundational knowledge to build things
 
 # lets look back at our main
 ```file +line_numbers
@@ -1881,7 +1881,7 @@ Input / Output
 ## A Note on `sprintf` and `snprintf`
 - `sprintf` and `snprintf` both format a string, and put the result into a destrination `char *`
 - the destination `char *` must be pre-allocated, and have enough room to hold the expanded format string
-- when `injecting` a variable into a format string, such as an `int` a max int represented as a string can take up ~10 characters
+- when `injecting` a variable into a format string, such as an `int` a max int represented as a string can take ~10 characters in string form
     - a format string such as "This is my number %d" where in `int` is injected would need to be at least 29 bytes
         - 18 for the characters "This is my number "
         - 10 for the string representation of the most placevalues taken up by an `int`
@@ -1897,7 +1897,7 @@ Input / Output
 Input / Output
 ---
 ## user input (from keyboard)
-- when a process starts `stdin` is opened and and keyboard input can be "streamed" to the process
+when a process starts `stdin` is opened and and keyboard input can be "streamed" to the process
 - `man fgetc`
 - `man getline`
 - `man scanf`
@@ -1906,3 +1906,52 @@ Input / Output
 
 Input / Output
 ---
+Opening files as `FILE *` streams
+- `man fopen`
+- `man fclose`
+
+## tl;dr
+- `fopen` will open a file given a relative or absolute file path in the given mode. the result is a `FILE *`
+    - always check functions that return a pointer for `NULL`
+
+- `fclose` will close an opened `FILE *` stream. think of this similar to allocating and deallocating memory with `malloc`/`calloc` and `free`.
+    - resourses requested from the operating system must be released when they are no longer needed.
+    - in a long running application, unreleased resourses can build up and degrade performance
+    - this concept is known as a `resource leak`
+<!-- end_slide -->
+
+Input / Output
+---
+# Reading and Writing arbitrary data
+- `man fread`
+- `man fwrite`
+
+# Reading strings
+- `man getline`
+- `man sscanf`
+    - `sscanf` is akin to a reverse `sprintf`
+    - use `getline` to read a line from a file, and then `sscanf` to parse formatted data from the line
+<!-- end_slide -->
+
+Threading
+---
+- POSIX standards
+- what are threads
+- creating threads
+- waiting on threads
+- coordinating threads
+<!-- end_slide -->
+
+Threading
+---
+# POSIX
+Portable Operating System Interface - a family of standards for maintaining compatibility between operating systems.
+- application programming interface
+- command line shell
+- shell commands
+- environment variables
+- etc.
+
+In theory, POSIX compliant applications can be built and run with expected behavior on POSIX compliant systems.
+- Similar to how the C Standard Library is cross platform for C programs, think of POSIX as more holistic across the entire OS
+
