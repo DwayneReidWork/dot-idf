@@ -41,7 +41,7 @@ Why Python
 - Interpreted Language
     - Python source files are processed by the python interpreter. if a system has an interpreter, it will run (version pending)
 <!-- new_line -->
-- Unlike C, the python has an integrated ecosystem of tool, with 3rd party options as well
+- Unlike C, Python has an integrated ecosystem of tools, with 3rd party options as well
 <!-- end_slide -->
 
 Program Execution -- How Operating Systems Run Python Code
@@ -105,7 +105,7 @@ Variables -- Syntax
 ---
 # Grammar
 ```
-<variable_name> <name> = <data>
+<variable_name> = <data>
 ```
 
 # Example [7.1, 7.2]
@@ -223,20 +223,20 @@ Control Flow -- Conditional Expressions
 # Logical `and`, `or`, `not`, `==`, `!=`, `>`, `>=`, `<`, `<=`
 - when performing logical operations, the literal words `and`, `or`, and `not` are used
 ```python +line_numbers
-a = 1
-b = 0
+a == 1
+b == 0
 a and b
 a or b
 not a
 not b
 ```
 
-# `None` pythons version of NULL
+# `None`: pythons version of NULL
 # `is`, `in`
 ```python +line_numbers
 socket = socket.create_connection(("127.0.0.1", 1337))
 socket is None     # will evaluate to False if we have a socket
-socket is not None # will evaluate to False if we have a socket
+socket is not None # will evaluate to True if we have a socket
 
 my_list = [5, 4, 3, 2, 1]
 5 in my_list              # will evaluate to 5 if it is in my_list

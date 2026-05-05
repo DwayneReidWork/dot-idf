@@ -1,6 +1,6 @@
 ---
 title: C Language
-author: CW2 Richard Hailey
+author: 90 COS/DOT
 theme:
     name: catppuccin-mocha
 ---
@@ -31,7 +31,6 @@ Overview
 - Building a "Buisness "Hello, World!"
 - Input / Output
 - Threading
-- Mutiplexing
 <!-- end_slide -->
 
 Why C
@@ -1933,6 +1932,76 @@ Input / Output
     - use `getline` to read a line from a file, and then `sscanf` to parse formatted data from the line
 <!-- end_slide -->
 
+Input / Output
+---
+# changing position or offset within a file
+- `man fseek` includes
+    - `fseek` to set the file position
+    - `ftell` to obtain the file position (as a long)
+    - `rewind` to set the file position to the start
+    - etc... read the man page
+
+- remember that reading and writing to a file modify the underling offset of the `FILE *` stream
+- if an application is going to write to a file, then read what was writen, the file offset needs to be set back to 0
+    - `rewind`
+    - `fseek`
+    - `fclose` then `fopen` the file
+<!-- end_slide -->
+
+input / output
+---
+# struct padding and writing structs to a stream
+- at first, writing a struct to a file stream might seem trivial
+```c +line_numbers
+struct vehicle car = {
+    .color = RED,
+    .doors = 2,
+    .wheels = 4
+}
+
+fwrite(&car, sizeof(struct vehicle), 1, my_file);
+```
+- but there is a hidden pitfall known as "struct padding" or data alignment
+    - https://en.wikipedia.org/wiki/Data_structure_alignment
+
+## td;dr
+- when a c application is built, the layout and true size of a struct is opaque to the developer
+- compiler optimizations may add extra padding so the data structure is "aligned"
+    - the padding location is determined at build time and may be different between builds
+- components of the struct need to be written and then read in the same order to preserve data integrity
+<!-- end_slide -->
+
+input / output
+---
+# writing struct components
+```c +line_numbers
+struct vehicle car = {
+    .color = RED,
+    .doors = 2,
+    .wheels = 4
+};
+
+struct vehicle new_car = {0};
+
+// the order in which you write the properties does not matter
+// as long as the properties are read in the same order
+fwrite(&car.color, sizeof(int), 1, my_file);
+fwrite(&car.doors, sizeof(int), 1, my_file);
+fwrite(&car.wheels, sizeof(int), 1, my_file);
+
+// rewind the file (set position back to 0)
+rewind(my_file)
+
+// this is reading in the same order
+fread(&new_car.color, sizeof(int), 1, my_file);
+fread(&new_car.doors, sizeof(int), 1, my_file);
+fread(&new_car.wheels, sizeof(int), 1, my_file);
+```
+- this example writes the individual properties of the struct to a file
+- after the file position is set back to the beginning, the properties are read in the same order
+
+<!-- end_slide -->
+
 Threading
 ---
 - POSIX standards
@@ -1954,4 +2023,81 @@ Portable Operating System Interface - a family of standards for maintaining comp
 
 In theory, POSIX compliant applications can be built and run with expected behavior on POSIX compliant systems.
 - Similar to how the C Standard Library is cross platform for C programs, think of POSIX as more holistic across the entire OS
+- for the purpose of these slides, we will go over POSIX threads
+<!-- end_slide -->
 
+Threading
+---
+# What are threads?
+- POSIX threads are an encapsulation of operating system primitives to provide a standard interface and behavior for multi-threaded applications
+- a thread is a parallel execution model that allows a program to control multiple different flows of work that overlap in time.
+- when a process is created, the code is executing in the main "thread"
+- additional threads can be created, with code running in "parallel" to the main thread of execution
+
+- `man pthreads`
+ 
+## note
+- threads discussed here are POSIX. the underlying operating system may have its own parallel execution model
+<!-- end_slide -->
+
+Threading
+---
+# creating threads
+- `man pthread_create`
+
+```c +line_numbers
+int pthread_create(pthread_t *restrict thread,
+                          const pthread_attr_t *restrict attr,
+                          typeof(void *(void *)) *start_routine,
+                          void *restrict arg);
+```
+## tl;dr
+- pthread will create a thread and run the code of the provided function pointer
+    - the function pointer must match the following type `void * (*func)(void *)`
+    - pthread_create will pass `void *arg` to the function pointer as its `void *` argument
+    - the thread function can return a `void *` as output of the function
+
+- the use of void pointers in this context allow us to run functions that take any type of argument and return and type of result
+<!-- end_slide -->
+
+Threading
+---
+# "waiting" on threads
+- `man pthread_join`
+
+## tl;dr
+- pthread join will cause the calling thread to `block` or `wait` until the `joined` thread has finished
+
+```c +line_numbers
+pthread_t id;
+
+pthread_create(&id, NULL, func, NULL);
+pthread_join(id, NULL);
+```
+- if the `start_routine` function returns a `void *` you can obtain the results with `pthread_join`
+```c +line_numbers
+pthread_t id;
+void *result = NULL;
+
+pthread_create(&id, NULL, func, NULL);
+
+// results value will be changed to the address of the returned data
+pthread_join(id, &result); 
+```
+<!-- end_slide -->
+
+Threading
+---
+# Synchronization
+threads operate in their own flow of execution independent of eachother, but might need to access a shared resource. multiple threads accessing the same resource simultaniously can cause data corruption. POSIX defines multiple mechanisms for thread coordination, but we will focus on the `mutex` and the `condition`
+- `man pthread_mutex`
+- `man pthread_cond`
+
+## tl;dr
+- a mutex can be used to lock a code section to single execution, where threads must obtain a lock before entering the critical code section and unlock the lock after leaving the critical code section
+- a conditional variable allows threads to suspend execution until a condition is met. normally the thread of execution the modifies the condition to be "met" will signal the waiting threads
+<!-- end_slide -->
+
+Threading
+---
+- placeholder for mutex & cond demonstration
