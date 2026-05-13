@@ -19,24 +19,16 @@ This instruction will not cover all the JQR items, and some of the sections are 
 Overview
 ---
 - Why DSA?
-- Data Structure Overview
-    - Algorithms and Big-O notation
-    - (smart) Arrays
-    - Linked List
-    - Circularly Linked List
-    - Double Linked List
-    - Tree & Binary Tree
-    - Stack
-    - Queue & Priority Queue
-    - Hash Table
-    - Weighted Graph
-- Data Structure Implementation
-    - Linked List
-    - Circularly Linked List
-    - Binary Search Tree
-    - Hash Table
-    - Stack
-    - Priority Queue
+- Algorithms and Big-O notation
+- (smart) Arrays
+- Linked List
+- Circularly Linked List
+- Double Linked List
+- Tree & Binary Tree
+- Stack
+- Queue & Priority Queue
+- Hash Table
+- Weighted Graph
 <!-- end_slide -->
 
 Why DSA?
@@ -52,7 +44,7 @@ the steps you take to solve a problem
 
 # Data Structures
 
-are data organization and storage formats that are usually chosen for efficient access to data.
+data organization and storage formats that are usually chosen for efficient access to data.
 
 - each data structure has its pros and cons, normally choosing to be more time (execution time) or space efficient (memory/storage)
 
@@ -171,7 +163,7 @@ Consider the following scenario:
 <!-- pause -->
 
 # solution 1: bubble sort
-```c
+```c +line_numbers
 void bubble_sort(int *array, int size) {
     int temp = 0;
 
@@ -204,10 +196,190 @@ Other noteworthly sorting algorithms:
 
 <!-- end_slide -->
 
-Data Structures
+data structures
 ---
 
+# Considerations
 - Data Structures use algorithms to insert, delete, add, remove, find, (etc etc) items from their storage.
 - Each data structure has pros and cons, either the complexity of their operations or the efficiency of their storage
-- When determining which data structure to use, we must analyze what we want to do with our data 
+- When determining which data structure to use, we must analyze what we want to do with our data
+    - are we rapidly appending data?
+    - are we iterating over fixed data?
+    - do we want quick insertion and indexing?
+
+# What is the storage for data structures? what is the format of the storage?
+- in C (what we will use for the majority of these demonstrations), the storage is memory.
+    - statically allocated, or more likely dynamically allocated to allow resizing
+- A data structure in C normally consists of two things:
+    - A `struct` whose properties describe the storage format and contain references to the storage
+    - Multiple functions that operate on said struct, performing various operations depending on the data structure
+<!-- end_slide -->
+
+data structures
+---
+
+# (smart) Array
+
+- C has arrays, but if you are coming from a higher level language, they are lacking in features.
+- C arrays are *just* contiguous space. the most primative form of "formatted" storage.
+- We will demonstrate creating a "smart" array in C that will highlight the core features of data structures
+
+Our smart array will be able to do the following:
+- insert items into an index
+- access items at an index
+- remove items at an index
+- resize upon request
+
+## specification
+```file +line_numbers
+path: ./code/smart_array/smart_array.h
+language: c
+```
+<!-- end_slide -->
+
+data structures
+---
+
+# (smart) Array
+
+## implementation
+
+- placeholder to review code at ./code/smart_array/smart_array.c
+- review code at ./code/smart_array/main.c
+- build the code at ./code/smart_array and run it in a debugger
+
+<!-- pause -->
+
+## Takeaways
+
+- this simple wrapper around primative arrays gives us more flexability with the amount of items
+- with the use of a `void **` as the backing storage, we can store pointers of any type. a *generic* data structure
+- the functions that operate on our smart array take and return `void *`, adding to the *generic* functionality
+- inserting is O(1)
+- accessing is O(1)
+- deleting is O(1)
+- resizing is O(N) where N is the number of items that need to be copied
+- needing to continually resize the array as it grows can quickly become expensive, and large resizes could result in unused space
+- this highlights the limitation of arrays. indexing items is fast, but growth is slow
+<!-- end_slide -->
+
+data structures
+---
+
+# linked lists
+
+- Linked Lists are a space effecient data structure that allow the linking or chaining of items in non-contiguous space
+- at its simplest form, a link list is a "node" with data and a pointer to the next node
+```c +line_numbers
+struct Node {
+    void *item;
+    struct Node *next;
+}
+```
+- by using a `void *` as our items type, this linked list can be used to hold any data type
+- A linked list is a chaining of nodes, where  one node points to the next, and the final node's next pointer is NULL (in C)
+- only a reference to the first node is needed to reach any index or node in the list
+```
++--------+       +--------+      +--------+
+|  item  |       |  item  |      |  item  |
+|  next -------->|  next ------->|  next ------> NULL
++--------+       +--------+      +--------+
+```
+- "walking" or iterating over a linked list looks as follows:
+```c +line_numbers
+struct Node *list = <pretend I have a list with multiple nodes>
+
+for (struct Node *i = list; NULL != i; i = i->next) {
+    // do something with i
+}
+```
+- if it isnt apparent yet, `struct addrinfo` as returned by `getaddrinfo` is a linked list of address info records
+<!-- end_slide -->
+
+data structures
+---
+
+# linked lists
+
+## specification
+```file +line_numbers
+path: ./code/linked_list/linked_list.h
+language: c
+```
+<!-- end_slide -->
+
+data structures
+---
+
+# linked lists
+
+## implementation
+
+- placeholder to review code at ./code/linked_list/linked_list.c
+- review code at ./code/linked_list/main.c
+- build the code at ./code/linked_list and run it in a debugger
+<!-- pause -->
+
+## Takeaways
+
+- linked lists allow us to easily append items to the end of our data structure without having to worry about resizing
+- appending items to a linked list requires us to "walk" the list until we find the end of the linked list. this operation is O(n) where n is the list size
+- indexing an array is at worst O(n), where the worst case scenario is indexing the end of the linked list
+- inserting into an array is at worst O(n), where the index to insert into is also the tail
+- use a linked list when you need to append an unknown amount of items and you do not want to worry about reallocating data
+- the efficiency of appending can be optimized by keeping track of the tail as well as the head of the list
+- keeping track of the size of the list can allow for quicker bounds checking on indexing or inserting
+<!-- end_slide -->
+
+data structures
+---
+
+# other noteworthy linked lists
+## Circularly Linked List
+- Circularly linked lists differ from regular linked lists in that the tail node points to the first node instead of `NULL`
+- when walking a circularly linked list, the "end" is never NULL, you can choose to walk the list forever, continually cycling
+
+## Double Linked List
+- in a Double linked list, each node points to the next node AND the previous node
+```
+      +--------+       +--------+      +--------+
+      |  item  |       |  item  |      |  item  |
+      |  next -------->|  next ------->|  next ------> NULL
+NULL <-- prev  |<-------- prev  | <------ prev  |
+      +--------+       +--------+      +--------+
+```
+- the head of a double linked list will point to `NULL` for its previous node
+
+## Other
+- Circular Double Linked List
+- Skip List
+<!-- end_slide -->
+
+data structures
+---
+
+# Trees & Binary Trees
+- Trees are similar to list data structures in that they are "nodes" that point to other "nodes" but in a tree, each node can point to multiple nodes.
+- in a tree, nodes are commonly refered to as leaves, and sub leaves are "child" leaves to the "parent" leaves
+- nodes, or leaves, in a tree will only have a single parent, and the most parent node is called the "root" 
+
+## Binary Trees
+- while tree data structures have a one to many node relationship, it is more common to have a 1:2 relationship. each parent node has a left and right node.
+- these trees, where nodes have two subnodes, is referred to as a "binary tree"
+- the relationship between parent nodes and their child nodes is that:
+    - the value in the left child node is less than the value in the parent node
+    - the value in the right child node is greater than the value in the parent node
+- when creating a binary tree, the first item is the "root"
+- when adding items to a binary tree, the tree is "walked" similar to a linked list, but traversal is done through the left and right nodes as opposed to "next"
+<!-- end_slide -->
+
+data structures
+---
+
+# Binary Tree Basics
+
+```file +line_numbers
+path: ./code/binary_tree/demo.c
+language: c
+```
 
