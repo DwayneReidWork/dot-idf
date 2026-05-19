@@ -10,6 +10,7 @@
 struct Node
 {
     int value;
+    struct Node *parent;
     struct Node *left;
     struct Node *right;
 };
@@ -63,11 +64,13 @@ int main (void)
             case LEFT:
                 index->left = calloc(1, sizeof(struct Node));
                 index->left->value = new_value;
+                index->left->parent = index;
                 break;
 
             case RIGHT:
                 index->right = calloc(1, sizeof(struct Node));
                 index->right->value = new_value;
+                index->right->parent = index;
                 break;
         }
     }
