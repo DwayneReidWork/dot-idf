@@ -30,4 +30,4 @@ print()
 
 print("printing child")
 child.print_values()
-
+child.new_function_only_child_has()

@@ -31,7 +31,6 @@ for car in cars:
 for i in range(15):
     for car in cars:
         car.update(1)
-        print(f"{car.color} car is going {car.speed} speed!")
+        print(f"{car.color} car is going {car.speed} mph!")
 
     print()
-
